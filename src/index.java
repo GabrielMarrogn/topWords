@@ -2,17 +2,24 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.regex.Pattern;
 
 public class index {
     public static void main(String[] args) throws IOException {
-        File file = new File("src\\Autores");
+        File file = new File("src/Autores");
         File afile[] = file.listFiles();
         List<String> linhas = new ArrayList<String>();
         Scanner sc = new Scanner(System.in);
+        Scanner sc2 = new Scanner(System.in);
         int i = 0;
+        int escolha = 0;
+        List<String> guardador1 = new ArrayList<String>();
+        List<String> guardador2 = new ArrayList<String>();
+        List<String> resultado = new ArrayList<String>();
 
         // foreach que todos os arquivos
         for (File files : afile) {
@@ -27,37 +34,84 @@ public class index {
         // basta digitar o numero do texto (do 0 ao 59)
         while (i != 1000) {
             System.out.println("");
-            System.out.println("Digite o numero do texto que deja ver:");
-            System.out.println("ou digite 1000 para sair");
-            int numero = 0;
-            //Trycatch para impedir que letra 
-            try {
-                numero = sc.nextInt();
-            } catch (Exception e) {
-                System.out.println("Erro! por favor apenas digite numeros");
-                break;
+            System.out.println("Se dejasa ver as palavras mais importante  de um texto digite 1");
+            System.out.println("Se dejasa ver as fazer comparacoes entre textos digite 2");
+            System.out.println("ou digite quaquer outro numero para sair");
+            // Trycatch para impedir que letra
+                try {
+                    escolha = sc.nextInt();
+                } catch (Exception e) {
+                    System.out.println("Erro! por favor apenas digite numeros");
+                    break;
+                }
+            if (escolha == 1) {
+                System.out.println("");
+                System.out.println("Digite o numero do texto que deja ver:");
+                System.out.println("ou digite 1000 para sair");
+                int numero = 0;
+                // Trycatch para impedir que letra
+                try {
+                    numero = sc.nextInt();
+                } catch (Exception e) {
+                    System.out.println("Erro! por favor apenas digite numeros");
+                    break;
+                }
+                if (numero == 1000) {
+                    System.out.println("Saindo...");
+                    i = 1000;
+                } else if (numero > 59) {
+                    System.out.println("Nao texto correspondente a esse numero ");
+                    System.out.println("Por fazer digite um numero ente 0 e 59");
+                } else {
+                    procesamento(linhas.get(numero));
+                }
+            } else if (escolha == 2) {
+                System.out.println("");
+                System.out.println("Digite o numero do primeiro texto:");
+                System.out.println("ou digite 1000 para sair");
+                int numero = sc.nextInt();
+                System.out.println("Digite o numero do Segundo texto:");
+                System.out.println("ou digite 1000 para sair");
+                int numero2 = sc2.nextInt();
+
+                if (numero == 1000 || numero2 == 1000) {
+                    System.out.println("Saindo...");
+                    i = 1000;
+                } else if (numero > 59 || numero2 > 59) {
+                    System.out.println("Nao texto correspondente a esse numero ");
+                } else if (numero >= 0 && numero < 60) {
+                    guardador1 = StoreWords(linhas.get(numero));
+                    guardador2 = StoreWords(linhas.get(numero2));
+                    resultado = ComparaVetor(guardador1, guardador2);
+
+                    System.out.println("Os dois textos possuem essa palavra(s) em comun :");
+                    System.out.println(resultado);
+
+                }
             }
-            if (numero == 1000) {
-                System.out.println("Saindo...");
+            else if(escolha !=1 && escolha != 2 ){
+                System.out.println("Numero ivalido");
                 i = 1000;
-            } else if (numero > 59) {
-                System.out.println("Nao texto correspondente a esse numero ");
-                System.out.println("Por fazer digite um numero ente 0 e 59");
-            } else {
-                procesamento(linhas.get(numero));
             }
 
         }
         sc.close();
+        sc2.close();
 
     }
 
     // Funcao que faz o pre-processamento e o processamento do texto
+    // Mostra quantas vez cada palavra aparece no texto e cria o grafo
+    // Usada para mostra as principais palavras do texto
     public static void procesamento(String basico) throws IOException {
+        // Usada para transformar acentos e caracteres especiais em palavras normais
+        String nfdNormalizedString = Normalizer.normalize(basico, Normalizer.Form.NFD);
+        Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+        String semAcento = pattern.matcher(nfdNormalizedString).replaceAll("");
         // Lista de stopwords
         List<String> stopwords = Files.readAllLines(Paths.get("src\\stopwords.txt"));
         // torna todas as palavras em minusculas, retira virgulas, e separa o texto
-        String[] allWords = basico.replaceAll("[^a-zA-Z ]", "").toLowerCase().split("\\s+");
+        String[] allWords = semAcento.replaceAll("[^a-zA-Z ]", "").toLowerCase().split("\\s+");
 
         // retira as stopwords
         StringBuilder builder = new StringBuilder();
@@ -136,6 +190,76 @@ public class index {
 
         g.printAdjList();
 
+    }
+
+    // Funcao que armazena as palavras mais importantes do texto em uma vetor
+    // Para que outra funcao faca a comparacao 
+    public static List<String> StoreWords(String basico) throws IOException {
+        //
+        List<String> importantWords = new ArrayList<>();
+        // Usada para transformar acentos e caracteres especiais em palavras normais
+        String nfdNormalizedString = Normalizer.normalize(basico, Normalizer.Form.NFD);
+        Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+        String semAcento = pattern.matcher(nfdNormalizedString).replaceAll("");
+        // Lista de stopwords
+        List<String> stopwords = Files.readAllLines(Paths.get("src\\stopwords.txt"));
+        // torna todas as palavras em minusculas, retira virgulas, e separa o texto
+        String[] allWords = semAcento.replaceAll("[^a-zA-Z ]", "").toLowerCase().split("\\s+");
+
+        // retira as stopwords
+        StringBuilder builder = new StringBuilder();
+        for (String word : allWords) {
+            if (!stopwords.contains(word)) {
+                builder.append(word);
+                builder.append(' ');
+            }
+        }
+        String resultado = builder.toString().trim();
+
+        // faz a tokenizacao das palavras
+        String[] result = resultado.split("\\s");
+
+        // Cria um novo array sem as repeticoes
+        List<String> tempResult = new ArrayList<String>();
+
+        for (int k = 0; k < result.length; k++) {
+            if (!tempResult.contains(result[k])) {
+                tempResult.add(result[k]);
+            }
+
+        }
+
+        for (int i = 0; i < tempResult.size(); i++) {
+
+            // chama o metodo contarRepeticoes
+            Object contadorPalavras = contarRepeticoes(result, result[i]);
+
+            // Mostra somente as palavras que aparecem mais de duas vezes
+            if (!contadorPalavras.equals(1) && !contadorPalavras.equals(2)) {
+                importantWords.add(tempResult.get(i));
+
+            }
+
+        }
+
+        return importantWords;
+
+    }
+
+    // Compara os vetores para ver quantos elementos sao iguais
+    public static List<String> ComparaVetor(List<String> guardador1, List<String> guardador2) {
+        List<String> iguais = new ArrayList<>();
+        for (int i = 0; i < guardador1.size(); i++) {
+            for (int k = 0; k < guardador2.size(); k++) {
+                if (guardador1.get(i).equals(guardador2.get(k))) {
+                    iguais.add(guardador2.get(k));
+                }
+            }
+        }
+        if(iguais.isEmpty()){
+            System.out.println("Nao ha palavras iguais entre os textos");
+        }
+        return iguais;
     }
 
     // funcao que conta quantas vezes a palavra aparece no texto
