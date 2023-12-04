@@ -18,4 +18,5 @@ Agora falando dos casos em que o programa roda corretamente, todos os casos são
 Por exemplo na parte dos autores, ele sempre vai ler todos os autores, e fazer todas comparaçoes para ver se existe uma relação, 
 a unica difereça entre os caos é que uma linha de print vai ser acionada, e em outra não.
 O mesmo pode ser aplicado ao compara para ver se os texto são semelantes, vai ser sempre comparada todos os elementos de um texto com todos od outro.
-Em suma o programa depende mais do tamanho do array, que no caso são os textos que são 60, do que tratar os textos de maneira diferente.
+A maior diferença é em mostra as principais palavras do textos, ja que essa parte depende bastante da quantida de palavras de um texto, nesse caso o melhor caso é sempre aquele que o texto é pequeno, e pior caso um texto gigante de 10.000 palavras, mas uma vez que o programa é feito para ler resumos, mesmo que eles não tenha tamanho fixo dentre os texto apresentados, não existe uma grande variação entre seu tamanho.
+Em suma o programa depende mais do tamanho do array, que no caso são quantos textos iram ser avaliados, do que tratar cada um dos textos de maneira diferente.
